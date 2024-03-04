@@ -1,1 +1,93 @@
+trigger AccountTrigger on Account (before insert,after insert,before Update,after update) {
+    //System.debug(Trigger.new);
+    //
+    //
+    //For Trigger.isDelete, Trigger.new isn;t availalbe
+    //scene 4: If an account is active, it should not be deletede
+    
+    
+    if(Trigger.isBefore && Trigger.isDelete){
+        
+        for(Account accOld:Trigger.old){
+            if(accOld.IsActive==true){
+                accOld.addError('You cant delete an active account');
+            }
+        }
+    }
+    //
+    //
+    //
+    //If a user updates the billing address in Account record, update its child contacts mailing address with the updated account’s billing address.
 
+    if(Trigger.isAfter && Trigger.isUpdate){
+        Set<Id> accountBillingAddressChanged=new Set<Id>();
+        for(Account accountRecordNew:Trigger.new){
+            Account accountRecordOld=Trigger.oldMap.get(accountRecordNew.Id);
+            if(accountRecordNew.BillingStreet!=accountRecordOld.BillingStreet){
+                accountBillingAddressChanged.add(accountRecordNew.Id);
+            }
+        }
+        List<Account> accountsWithContacts=[Select Id,Name,billingstreet,BillingState,(Select Id from contacts ) from Account where Id in:accountBillingAddressChanged ];
+        List<Contact> contactListToUpdate=new List<Contact>();
+        
+        for(Account acc: accountsWithContacts){
+            List<Contact> contactTheLoopedAccount=acc.contacts;
+            for(contact con:contactTheLoopedAccount ){
+                //con.mailingstreet=acc.billingstreet;
+                //con.MailingCity=acc.BillingCity;
+                con.MailingState=acc.BillingState;
+                //con.mailingcountry=acc.billingcountry;
+                contactListToUpdate.add(con);
+            }
+        }
+        if(contactListToUpdate.size()>0) {
+            UPDATE contactListToUpdate;
+        }
+    }
+    
+    //
+    //
+    //If a user updates an account record, throw error “Account once created, its name can’t be changed.
+    
+    if(Trigger.isBefore && Trigger.isUpdate){
+        for(Account accountRecordNew:Trigger.new){
+            Account accountRecordOld=Trigger.oldMap.get(accountRecordNew.Id);
+            if(accountRecordNew.Name!=accountRecordOld.Name){
+                accountRecordNew.addError('Account once created, its name can’t be changed');
+            }
+        }
+    }
+    
+    //Scene 3: If a new account is creatd, code a logic to automatically create its new related contact
+    if(Trigger.isAfter && Trigger.isInsert){
+        List<Contact> contactListToInsert=new List<Contact>();
+        
+        for(Account accountRecord:Trigger.new){
+            Contact con=new Contact();
+            con.LastName=accountRecord.Name;
+            
+            con.AccountId=accountRecord.Id; // since the Account record is created, we are able to get its id
+            contactListToInsert.add(con);
+        }
+        
+        //if there are contacts in the list of contacts, insert contact
+        
+        if(contactListToInsert.size()>0)
+            INSERT contactListToInsert;
+    }
+    
+    If(Trigger.isBefore && Trigger.isInsert){
+        
+        for(Account accountRecord:Trigger.new){
+            //Scene 2: if Annual Revenue <1000, return error message
+            if(accountRecord.AnnualRevenue<1000)
+                accountRecord.addError('Annual Revenue must be >=1000 ');
+            
+            if(accountRecord.ShippingCity==null)
+                accountRecord.ShippingCity=accountRecord.BillingCity;
+            
+        }
+        // Never write Insert/UPDATE Statement in Before Events
+            
+    }
+}
