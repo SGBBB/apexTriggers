@@ -1,0 +1,19 @@
+trigger duplicateAccountCheckTrigger on Account (before insert , before update) {
+    Map<String,Account> accMap=new Map<String,Account>();
+    //Trigger to prevent duplicate Account record creation based on name everytime a new record is created or updated.
+    for(Account curAcc: Trigger.new){
+        //if you are updating the current Account then its value should not be equals to its previous value
+        if(Trigger.insert || Trigger.oldMap.get(curAcc.id).name!=curAcc.name){
+            if(accMap.containsKey(curAcc.name))
+                curAcc.addError('Account name is repeated while inserting or updating');
+            else
+                curAcc.put(curAcc.name,curAcc);
+        }  
+
+    }
+    List<Account> accList=[Select Name from  Account where Name in: accMap.keySet()];
+    for(Account currAcc:accList){
+        accMap.get(currAcc.name).addError('Kindly add a unique name for this Account');
+    }
+
+}
