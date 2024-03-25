@@ -1,1 +1,39 @@
+trigger RollupSummaryTrigger on Opportunity (after insert) {
+    //Task: update opportunity count in their parent Account
+    //NOTE: Try to built logic around one event like inert
+    Set<Id> accList=new Set<Id>();
+    // iterate over newly inserted opportunity in bulk and collect accountIds
+    
+    for(Opportunity curOppty:Trigger.new){
+    	accList.add(curOppty.accountId);
+    }
 
+    List<Account> allAccounts=[Select id,Name,opportunityCount__c from Account where Id in:accList];
+    Map<id,List<Opportunity>> allOpptyMap=new Map<id,List<Opportunity>>();
+    
+    List<Opportunity> allOppty=[Select id,AccountId from Opportunity where AccountId IN :accList  ];
+    //    iterate over the allOppty and update our map   
+    
+    for(Opportunity curOppty:allOppty){
+        if(!allOpptyMap.containsKey(curOppty.AccountId) )
+            allOpptyMap.put(curOppty.AccountId,new List<Opportunity>{curOppty});
+        else 
+            allOpptyMap.get(curOppty.AccountId).add(curOppty);
+        //if map containsKey then just push it to the list
+    }
+
+    List<Account> accountstoBeUpdated= new List<Account> ();
+    for(Account curAcc:allAccounts){
+        if(allOpptyMap.containsKey(curAcc.Id)){
+            curAcc.opportunityCount__c=allOpptyMap.get(curAcc.Id).size();
+            accountstoBeUpdated.add(curAcc);
+        }
+    }
+
+    if(!accountstoBeUpdated.isEmpty()){
+        UPDATE accountstoBeUpdated;
+
+    }
+
+    
+}
