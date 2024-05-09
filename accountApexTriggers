@@ -1,4 +1,4 @@
-trigger AccountTrigger on Account (before insert,after insert,before Update,after update) {
+Scenario1. trigger AccountTrigger on Account (before insert,after insert,before Update,after update) {
     //System.debug(Trigger.new);
     //
     //
@@ -17,7 +17,7 @@ trigger AccountTrigger on Account (before insert,after insert,before Update,afte
     //
     //
     //
-    //If a user updates the billing address in Account record, update its child contacts mailing address with the updated account’s billing address.
+Scenario2:    //If a user updates the billing address in Account record, update its child contacts mailing address with the updated account’s billing address.
 
     if(Trigger.isAfter && Trigger.isUpdate){
         Set<Id> accountBillingAddressChanged=new Set<Id>();
@@ -47,7 +47,7 @@ trigger AccountTrigger on Account (before insert,after insert,before Update,afte
     
     //
     //
-    //If a user updates an account record, throw error “Account once created, its name can’t be changed.
+Scenario3:    //If a user updates an account record, throw error “Account once created, its name can’t be changed.
     
     if(Trigger.isBefore && Trigger.isUpdate){
         for(Account accountRecordNew:Trigger.new){
@@ -58,7 +58,7 @@ trigger AccountTrigger on Account (before insert,after insert,before Update,afte
         }
     }
     
-    //Scene 3: If a new account is creatd, code a logic to automatically create its new related contact
+    //Scene 4: If a new account is creatd, code a logic to automatically create its new related contact
     if(Trigger.isAfter && Trigger.isInsert){
         List<Contact> contactListToInsert=new List<Contact>();
         
