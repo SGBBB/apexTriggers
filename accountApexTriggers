@@ -49,36 +49,6 @@ Scenario2:    //If a user updates the billing address in Account record, update 
     //
  
     
-    //Scene 3: If a new account is creatd, code a logic to automatically create its new related contact
-    if(Trigger.isAfter && Trigger.isInsert){
-        List<Contact> contactListToInsert=new List<Contact>();
-        
-        for(Account accountRecord:Trigger.new){
-            Contact con=new Contact();
-            con.LastName=accountRecord.Name;
-            
-            con.AccountId=accountRecord.Id; // since the Account record is created, we are able to get its id
-            contactListToInsert.add(con);
-        }
-        
-        //if there are contacts in the list of contacts, insert contact
-        
-        if(contactListToInsert.size()>0)
-            INSERT contactListToInsert;
-    }
+
     
-    If(Trigger.isBefore && Trigger.isInsert){
-        
-        for(Account accountRecord:Trigger.new){
-            //Scene 2: if Annual Revenue <1000, return error message
-            if(accountRecord.AnnualRevenue<1000)
-                accountRecord.addError('Annual Revenue must be >=1000 ');
-            
-            if(accountRecord.ShippingCity==null)
-                accountRecord.ShippingCity=accountRecord.BillingCity;
-            
-        }
-        // Never write Insert/UPDATE Statement in Before Events
-            
-    }
-}
+
