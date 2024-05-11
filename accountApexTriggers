@@ -47,6 +47,28 @@ Scenario2:    //If a user updates the billing address in Account record, update 
     
     //
     //
+
+trigger AccountEditTrigger on Account (after update) {
+    if(Trigger.isafter && Trigger.isUpdate && !Trigger.new.isEmpty()){
+        Set<Id> accountBillingAddressChanged=new Set<Id>();
+        for(Account accountRecordNew:Trigger.new){
+            Account accountRecordOld=Trigger.oldMap.get(accountRecordNew.Id);
+            System.debug('testDebug1 ' + accountRecordNew.BillingStreet + ' -- '+accountRecordOld.BillingStreet);
+            if(accountRecordNew.BillingStreet!=accountRecordOld.BillingStreet){
+                accountBillingAddressChanged.add(accountRecordNew.Id);
+            }
+        }
+        
+        List<Account> accountsWithContacts=[Select Id,Name,billingstreet,BillingState,(Select Id from contacts ) from Account where Id in:accountBillingAddressChanged ];
+        
+        List<Contact> contactListToUpdate=new List<Contact>();
+        
+        
+        if(!contactListToUpdate.isEmpty()) {
+            UPDATE contactListToUpdate;
+        }
+    }
+}
  
     
 
