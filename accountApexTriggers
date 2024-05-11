@@ -47,7 +47,7 @@ Scenario2:    //If a user updates the billing address in Account record, update 
     
     //
     //
-
+//more revised trigger, we are using just one loop here
 trigger AccountEditTrigger on Account (after update) {
     if(Trigger.isafter && Trigger.isUpdate && !Trigger.new.isEmpty()){
         Set<Id> accountBillingAddressChanged=new Set<Id>();
