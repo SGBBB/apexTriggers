@@ -48,8 +48,8 @@ Scenario2:    //If a user updates the billing address in Account record, update 
     //
     //
 //more revised trigger, we are using just one loop here
-trigger AccountEditTrigger on Account (after update) {
-    if(Trigger.isafter && Trigger.isUpdate && !Trigger.new.isEmpty()){
+trigger AccountEditTrigger on Account (before update) {
+    if(Trigger.isbefore && Trigger.isUpdate && !Trigger.new.isEmpty()){
         Set<Id> accountBillingAddressChanged=new Set<Id>();
         for(Account accountRecordNew:Trigger.new){
             Account accountRecordOld=Trigger.oldMap.get(accountRecordNew.Id);
@@ -58,10 +58,19 @@ trigger AccountEditTrigger on Account (after update) {
                 accountBillingAddressChanged.add(accountRecordNew.Id);
             }
         }
-        
-        List<Account> accountsWithContacts=[Select Id,Name,billingstreet,BillingState,(Select Id from contacts ) from Account where Id in:accountBillingAddressChanged ];
+         
+  		
+         
+        //Map to store contact belonging to accountBillingAddressChanged set
+		Map<Id,Contact> contactsWithUpdateAccounts=new Map<Id,Contact>([Select Id,AccountId,Name,mailingstreet   from Contact where AccountId in:accountBillingAddressChanged ]);        
         
         List<Contact> contactListToUpdate=new List<Contact>();
+        for(Contact curContact:contactsWithUpdateAccounts.values()){
+            //We are iterating over the new Map because the values are not updated to db.
+            
+            curContact.MailingStreet=Trigger.newMap.get(curContact.AccountId).billingstreet;
+            contactListToUpdate.add(curContact);
+        }
         
         
         if(!contactListToUpdate.isEmpty()) {
@@ -69,7 +78,6 @@ trigger AccountEditTrigger on Account (after update) {
         }
     }
 }
- 
     
 
     
