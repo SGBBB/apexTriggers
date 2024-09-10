@@ -1,6 +1,6 @@
 trigger RollupSummaryTrigger on Opportunity (after insert) {
     //Task: update opportunity count in their parent Account
-    //NOTE: Try to built logic around one event like inert
+    //NOTE: Try to built logic around one event like insert
     Set<Id> accList=new Set<Id>();
     // iterate over newly inserted opportunity in bulk and collect accountIds
     
