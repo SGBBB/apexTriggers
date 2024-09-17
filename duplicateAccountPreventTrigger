@@ -13,6 +13,7 @@ trigger duplicateAccountCheckTrigger on Account (before insert , before update) 
         }  
 
     }
+//in the code snippet below, we are tracking dups against our exisitng data.
     List<Account> accList=[Select Name from  Account where Name in: accMap.keySet()];
     for(Account currAcc:accList){
         accMap.get(currAcc.name).addError('Kindly add a unique name for this Account');
