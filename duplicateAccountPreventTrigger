@@ -1,22 +1,26 @@
-trigger duplicateAccountCheckTrigger on Account (before insert , before update) {
-    Map<String,Account> accMap=new Map<String,Account>();
-    //Trigger to prevent duplicate Account record creation based on name everytime a new record is created or updated.
+trigger DetectDups on Account(before insert, before update) {
+  Map<String, Account> accMap = new Map<String, Account>();
+  //Trigger to prevent duplicate Account record creation based on name everytime a new record is created or updated.
 
-//in the for loop snippet below we are checking whether the dups exist along we are checking for dups against our incoming people's list(Trigger.new).
-    for(Account curAcc: Trigger.new){
-        //if you are updating the current Account then its value should not be equals to its previous value
-        if(Trigger.insert || Trigger.oldMap.get(curAcc.id).name!=curAcc.name){
-            if(accMap.containsKey(curAcc.name))
-                curAcc.addError('Account name is repeated while inserting or updating');
-            else
-                curAcc.put(curAcc.name,curAcc);
-        }  
-
+  //in the for loop snippet below we are checking whether the dups exist along we are checking for dups against our incoming people's list(Trigger.new).
+  for (Account curAcc : Trigger.new) {
+    //if you are updating the current Account then its value should not be equals to its previous value
+    if (Trigger.isInsert || Trigger.oldMap.get(curAcc.id).name != curAcc.name) {
+      if (accMap.containsKey(curAcc.name))
+        curAcc.addError('Account name is repeated while inserting or updating');
+      else {
+        accMap.put(curAcc.name, curAcc);
+      }
     }
-//in the code snippet below, we are tracking dups against our exisitng data.
-    List<Account> accList=[Select Name from  Account where Name in: accMap.keySet()];
-    for(Account currAcc:accList){
-        accMap.get(currAcc.name).addError('Kindly add a unique name for this Account');
-    }
+  }
+  //in the code snippet below, we are tracking dups against our exisitng data.
 
+  for (Account currAcc : [
+    SELECT Name
+    FROM Account
+    WHERE Name IN :accMap.keySet()
+  ]) {
+    accMap.get(currAcc.name)
+      .addError('Kindly add a unique name for this Account');
+  }
 }
