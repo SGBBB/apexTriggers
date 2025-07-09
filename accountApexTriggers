@@ -48,7 +48,7 @@ Scenario2:    //If a user updates the billing address in Account record, update 
     //
     //
 //more revised trigger, we are using just one loop here
-trigger AccountEditTrigger on Account (before update) {
+trigger AccountEditTrigger on Account (after update) { // since extra dml-cost is incurred over here, it can't never be run in before context.
     if(Trigger.isbefore && Trigger.isUpdate && !Trigger.new.isEmpty()){
         Set<Id> accountBillingAddressChanged=new Set<Id>();
         for(Account accountRecordNew:Trigger.new){
